@@ -7,23 +7,9 @@ from splinter import Browser
 import datetime
 time = datetime.datetime.now
 
-product_type = 'jackets'
-product = "supreme-hanes-tagless-tees"
 mainUrl = "http://www.supremenewyork.com/shop/all"
 baseUrl = "http://supremenewyork.com"
 checkoutUrl = "https://www.supremenewyork.com/checkout"
-selectOption = "Large"
-namefield = "John Doe"
-emailfield = "Test@example.com"
-phonefield = "5555555555"
-addressfield = "1600 Pennsylvania Avenue NW"
-zipfield = "20500"
-statefield = "DC"
-cctypefield = "master"  # "master" "visa" "american_express"
-ccnumfield = "5274576954806318"  # Randomly Generated Data (aka, this isn't mine)
-ccmonthfield = "06"  # Randomly Generated Data (aka, this isn't mine)
-ccyearfield = "2019"  # Randomly Generated Data (aka, this isn't mine)
-cccvcfield = "800"  # Randomly Generated Data (aka, this isn't mine)
 
 
 def main(product_type):
@@ -44,45 +30,119 @@ def checkout(courl):
     try:
         name_input_path = "//input[@id='order_billing_name']"
         text_input_field = browser.find_element_by_xpath(name_input_path)
-        text_input_field.send_keys('BRANDON J FLANNERY')
+        text_input_field.send_keys(fullName)
         print('SUCCESS | Added Name.')
     except:
         print('Checkout Error. Cannot find Name field.')
     try:    
         email_input_path = "//input[@id='order_email']"
         text_input_field = browser.find_element_by_xpath(email_input_path)
-        text_input_field.send_keys('brandonjflannery@gmail.com')
+        text_input_field.send_keys(emailField)
         print('SUCCESS | Added Email.')
     except:
         print('Checkout Error. Cannot find Email field.')
     try:
         tel_input_path = "//input[@id='order_tl']"
         text_input_field = browser.find_element_by_xpath(tel_input_path)
-        text_input_field.send_keys('805-551-3213')
+        text_input_field.send_keys(phoneField)
         print('SUCCESS | Added Telephone.')
     except:
         print('Checkout Error. Cannot find Telephone field.') 
     try:
         address_input_path = "//input[@name='order[billing_address]']"
         text_input_field = browser.find_element_by_xpath(address_input_path)
-        text_input_field.send_keys('2417 Prospect Street')
+        text_input_field.send_keys(addressField)
         print('SUCCESS | Added Address.')
     except:
         print('Checkout Error. Cannot find Address field.')
     try:
         zip_input_path = "//input[@id='order_billing_zip']"
         text_input_field = browser.find_element_by_xpath(zip_input_path)
-        text_input_field.send_keys('94704')
+        text_input_field.send_keys(zipField)
         print('SUCCESS | Added ZIP')
     except:
         print('Checkout Error. Cannot find ZIP field.')
     try:
         city_input_path = "//input[@id='order_billing_city']"
         text_input_field = browser.find_element_by_xpath(city_input_path)
-        text_input_field.send_keys('Berkeley')
+        text_input_field.send_keys(cityField)
         print('SUCCESS | Added City')
     except:
         print('Checkout Error. Cannot find City field.') 
+    # Note: Don't need to add country and state after adding zip code
+    try:
+        city_input_path = "//select[@id='credit_card_type']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        all_options = text_input_field.find_elements_by_tag_name("option")
+        for option in all_options:
+            temp_value = option.get_attribute("value")
+            if temp_value == ccTypeField:
+                option.click()
+                print('SUCCESS | Added Credit Card Type')
+    except Exception, e:
+        print('Checkout Error. Cannot fill Credit Card Type field.') 
+        print(e)
+    try:
+        city_input_path = "//input[@id='cnb']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        text_input_field.send_keys(ccNumberField)
+        print('SUCCESS | Added Credit Card Number')
+    except:
+        print('Checkout Error. Cannot find Credit Card Number field.') 
+    try:
+        city_input_path = "//select[@id='credit_card_year']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        all_options = text_input_field.find_elements_by_tag_name("option")
+        for option in all_options:
+            temp_value = option.get_attribute("value")
+            if str(temp_value) == ccYearField:
+                option.click()
+                print('SUCCESS | Added Credit Card Exp Year')
+    except Exception, e:
+        print('Checkout Error. Cannot fill Credit Card Exp. Year field.') 
+        print(e)
+    try:
+        city_input_path = "//select[@id='credit_card_month']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        all_options = text_input_field.find_elements_by_tag_name("option")
+        for option in all_options:
+            temp_value = option.get_attribute("value")
+            if str(temp_value) == ccMonthField:
+                option.click()
+                print('SUCCESS | Added Credit Card Type')
+    except Exception, e:
+        print('Checkout Error. Cannot fill Credit Card Exp. Month field.') 
+        print(e)
+    try:
+        city_input_path = "//input[@id='cvw']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        text_input_field.send_keys(ccCvcField)
+        print('SUCCESS | Added CVW CVV')
+    except Exception, e:
+        print('Checkout Error. Cannot find CVW CVV field: {}'.format(e))
+        try:
+            city_input_path = "//input[@id='vval']"
+            text_input_field = browser.find_element_by_xpath(city_input_path)
+            text_input_field.send_keys(ccCvcField)
+            print('SUCCESS | Added VVAL CVV')
+        except Exception, e:
+            print('Checkout Error. Cannot find VVAL CVV field: {}'.format(e))
+    try:
+        city_input_path = "//input[@name='order[terms]']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        text_input_field.click()
+        print('SUCCESS | Filled Order Terms Checkbox')
+    except Exception, e:
+        print('Checkout Error. Cannot fill Order Terms Field.')
+        print e
+    #try:
+    #    city_input_path = "//input[@value='process payment']"
+    #    text_input_field = browser.find_element_by_xpath(city_input_path)
+    #    text_input_field.click()
+    #    print('SUCCESS | Clicked Process Payment button')
+    #except Exception, e:
+    #    print('Checkout Error. Cannot click Process Payment button.')
+    #    print e
     return
 
 def parse(r, url, parse_type):
@@ -118,62 +178,28 @@ def checkproduct(l):
     #buyprd(prdurl)
 
 
-def buyprd(u):
-    browser = Browser('firefox')
-    url = u
-    browser.visit(url)
-    # 10|10.5
-    browser.find_option_by_text(selectOption).first.click()
-    browser.find_by_name('commit').click()
-    if browser.is_text_present('item'):
-        print("Added to Cart")
-    else:
-        print("Error")
-        return
-    print("checking out")
-    browser.visit(checkoutUrl)
-    print("Filling Out Billing Info")
-    browser.fill("order[billing_name]", namefield)
-    browser.fill("order[email]", emailfield)
-    browser.fill("order[tel]", phonefield)
-
-    print("Filling Out Address")
-    browser.fill("order[billing_address]", addressfield)
-    browser.fill("order[billing_zip]", zipfield)
-    browser.select("order[billing_state]", statefield)
-    print("Filling Out Credit Card Info")
-
-    browser.select("credit_card[type]", cctypefield)
-    browser.fill("credit_card[number]", ccnumfield)
-    browser.select("credit_card[month]", ccmonthfield)
-    browser.select("credit_card[year]", ccyearfield)
-    browser.fill("credit_card[verification_value]", cccvcfield)
-    browser.find_by_css('.terms').click()
-    print("Submitting Info")
-    browser.find_by_name('commit').click()
-    sys.exit(0)
-
 
 i = 0
 if __name__ == '__main__':
 
-    product_type = 'accessories'
+    product_type = 'jackets'
     product = "supreme-hanes-tagless-tees"
-    mainUrl = "http://www.supremenewyork.com/shop/all"
-    baseUrl = "http://supremenewyork.com"
-    checkoutUrl = "https://www.supremenewyork.com/checkout"
+    mainUrl = mainUrl
+    baseUrl = baseUrl
+    checkoutUrl = checkoutUrl
     selectOption = "Large"
-    namefield = "John Doe"
-    emailfield = "Test@example.com"
-    phonefield = "5555555555"
-    addressfield = "1600 Pennsylvania Avenue NW"
-    zipfield = "20500"
-    statefield = "DC"
-    cctypefield = "master"  # "master" "visa" "american_express"
-    ccnumfield = "5274576954806318"  # Randomly Generated Data (aka, this isn't mine)
-    ccmonthfield = "06"  # Randomly Generated Data (aka, this isn't mine)
-    ccyearfield = "2019"  # Randomly Generated Data (aka, this isn't mine)
-    cccvcfield = "800"  # Randomly Generated Data (aka, this isn't mine)
+    fullName = "BRANDON J FLANNERY"
+    emailField = "brandonjflannery@gmail.com"
+    phoneField = "5555555555"
+    addressField = "2417 Prospect Street"
+    zipField = "94704"
+    cityField = 'Berkeley'
+    stateField = "CA"
+    ccTypeField = "american_express"  # "master" "visa" "american_express"
+    ccNumberField = "55555555555555555"  # Randomly Generated Data (aka, this isn't mine)
+    ccMonthField = "08"  # Randomly Generated Data (aka, this isn't mine)
+    ccYearField = "2019"  # Randomly Generated Data (aka, this isn't mine)
+    ccCvcField = "063"  # Randomly Generated Data (aka, this isn't mine)
 
     st = time()
     print('PROCESS INITIATED | Supreme Auto Purchase. Start Time: {}'.format(st))
