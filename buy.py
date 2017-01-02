@@ -143,14 +143,14 @@ def checkout(courl):
     except Exception, e:
         print('ERROR | Checkout Error. Cannot fill Order Terms Field.')
         print e
-    #try:
-    #    city_input_path = "//input[@value='process payment']"
-    #    text_input_field = browser.find_element_by_xpath(city_input_path)
-    #    text_input_field.click()
-    #    print('SUCCESS | Clicked Process Payment button')
-    #except Exception, e:
-    #    print('Checkout Error. Cannot click Process Payment button.')
-    #    print e
+    try:
+        city_input_path = "//input[@value='process payment']"
+        text_input_field = browser.find_element_by_xpath(city_input_path)
+        text_input_field.click()
+        print('SUCCESS | Clicked Process Payment button')
+    except Exception, e:
+        print('Checkout Error. Cannot click Process Payment button.')
+        print e
     return
 
 def parseProductTypePage(r, url, product_type):
@@ -184,16 +184,32 @@ def parseAddToCartPage(r, url):
     prod_match_list = [distance.get_jaro_distance(prod_full, product_id, winkler=True, scaling=0.1) for product_id in product_id_list]
     max_match = max(prod_match_list)
     if max_match >= .97:
-        del product_id_list[prod_match_list.index(max(prod_match_list))] # Remove product_id from list of desired items so we dont buy >1
+        prod_list_index = prod_match_list.index(max(prod_match_list))
+        prod_size = product_list[prod_list_index][2]
         print('INFO | Clicking Add-to-Cart Button. Product Name: {}. Product Model: {}. Match Distance: {}'.format(prod_name, prod_model, max_match))
         add_cart_button_path = "//input[@value='add to cart']"
         browser.get(url)
         try:
+            size_input_path = "//select[@id='size']"
+            text_input_field = browser.find_element_by_xpath(size_input_path)
+            all_options = text_input_field.find_elements_by_tag_name("option")
+            size_selected = False
+            for option in all_options:
+                temp_value = option.get_attribute("value")
+                temp_text = option.text
+                if temp_text == prod_size:
+                    option.click()
+                    print('SUCCESS | Added Size: {}'.format(temp_text))
+                    size_selected = True
+                    break
+            if size_selected == False:
+                raise Exception('SOLD-OUT | Item size sold out: {}'.format(prod_size))
             button = browser.find_element_by_xpath(add_cart_button_path)
             button.click()
-            print('SUCCESS | Clicked Add-to-Cart button on {}, {}'.format(prod_name, prod_model))
-        except:
-            print('SOLD-OUT | Item Sold Out: {}, {}'.format(prod_name, prod_model))
+            print('SUCCESS | Clicked Add-to-Cart button on {}, {}, {}'.format(prod_name, prod_model, prod_size))
+        except Exception, e:
+            print('SOLD-OUT | Item Sold Out: {}, {}, {}'.format(prod_name, prod_model, prod_size))
+            print e
     else:
         print('INFO | Skipped Product. Product Name: {}. Product Model: {}. Match Distance: {}'.format(prod_name, prod_model, max_match))
     return
@@ -221,21 +237,21 @@ def checkproduct(l):
 i = 0
 if __name__ == '__main__':
 
-    product_type_list = ['jackets']
+    product_type_list = ['tops-sweaters', 'jackets']
     product_list = [
-                    ["Shadow Plaid Wool Overcoat", "Gold"],
-                    ["Supreme/Schott Shearling Bomber", "Black"],
-                    ["Blade Whole Car Skateboard", "8.375\" x 32.375\""],
-                    ["Satin Western Shirt", "Blue"]
+                    ["Shadow Plaid Wool Overcoat", "Black", 'XLarge'],
+                    ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
+                    ["Ribbed Pocket Tee", "Off White", 'Large'],
+                    ["Spider Web Shirt", "Black", 'Large'],
+                    ["", "", ""]
                     ]
     product_id_list = []
-    for product_name, product_model in product_list:
+    for product_name, product_model, prod_size in product_list:
         product_id = " -- ".join([product_name, product_model])
         product_id_list.append(product_id)
     mainUrl = mainUrl
     baseUrl = baseUrl
     checkoutUrl = checkoutUrl
-    selectOption = "Large"
     fullName = "BRANDON J FLANNERY"
     emailField = "brandonjflannery@gmail.com"
     phoneField = "8055513213"
@@ -244,10 +260,10 @@ if __name__ == '__main__':
     cityField = 'Berkeley'
     stateField = "CA"
     ccTypeField = "visa"  # "master" "visa" "american_express"
-    ccNumberField = "4833160040604014"  
-    ccMonthField = "08"  # Randomly Generated Data (aka, this isn't mine)
+    ccNumberField = "4833160140614014"  
+    ccMonthField = "09"  # Randomly Generated Data (aka, this isn't mine)
     ccYearField = "2019"  # Randomly Generated Data (aka, this isn't mine)
-    ccCvcField = "063"  # Randomly Generated Data (aka, this isn't mine)
+    ccCvcField = "444"  # Randomly Generated Data (aka, this isn't mine)
 
     st = time()
     print('PROCESS INITIATED | Supreme Auto Purchase. Start Time: {}'.format(st))
