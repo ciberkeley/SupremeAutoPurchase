@@ -3,12 +3,13 @@ import sys, webbrowser, re
 import requests
 from selenium.webdriver import Chrome
 from bs4 import BeautifulSoup
-from splinter import Browser
 from pyjarowinkler import distance
 import datetime
+import multiprocessing
 time = datetime.datetime.now
 
-mainUrl = "http://www.supremenewyork.com/shop/all"
+fakeUserAgentHeader = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'}  #http://www.useragentstring.com/pages/useragentstring.php
+mainUrl = "https://www.supremenewyork.com/shop/all"
 baseUrl = "http://supremenewyork.com"
 checkoutUrl = "https://www.supremenewyork.com/checkout"
 unicode_num_dict = {'0': u'\ue01a', '1': u'\ue01b', '2': u'\ue01c', '3': u'\ue01d', '4': u'\ue01e', '5': u'\ue01f', 
@@ -16,17 +17,21 @@ unicode_num_dict = {'0': u'\ue01a', '1': u'\ue01b', '2': u'\ue01c', '3': u'\ue01
 
 
 def main(product_type_list):
-    r = requests.get(mainUrl).text
+    r = requests.get(mainUrl, headers = fakeUserAgentHeader).text
     for product_type in product_type_list:
         if product_type in r: # Add Selected Product-Type To Cart
+            print('-----')
             print('Product-Type Identified. Checking Product-Type Page: {}'.format(product_type))
             parse(r, mainUrl, 'product_type', product_type)
             print('Parse Complete: {}'.format(product_type))
+            print('-----')
         else:
-            print('Product-Type not found: {}'.format(product_type))
+            print('-----\nProduct-Type not found: {}\n-----'.format(product_type))
     checkout(checkoutUrl)
+    browser.delete_all_cookies() # Delete all cookies
 
 def checkout(courl):
+    print('CHECKOUT | Initiating Checkout. Current Time: {}'.format(time()))
     browser.get(courl)
     try:
         name_input_path = "//input[@id='order_billing_name']"
@@ -153,19 +158,46 @@ def checkout(courl):
         print e
     return
 
+def checkProductLink(a):
+    cartFull = (len(product_id_list) == 0) # Desired item list empty
+    if cartFull:
+        print '--\nCART-UPDATE | All requested items added to cart.\n--'
+        time1.sleep(.2)
+        return 0
+    link = a['href']
+    category_view_url_suffix = 'shop/all/{}'.format(product_type)
+    if (not cartFull) and (product_type in link) and (category_view_url_suffix != link[-1 * len(category_view_url_suffix):]):
+        # if (cart not full) and (product type in link) and (link is not a product type page link)
+        print('--')
+        print 'CART-UPDATE | {} items left to add to cart.'.format(len(product_id_list))
+        print('INFO | Checking Link on Product-Type Page: {}'.format(link))
+        checkproduct(link)
+        print('--')
+    return 1
+
 def parseProductTypePage(r, url, product_type):
     # Parse a product type page. EG: http://www.supremenewyork.com/shop/all/skate
-    soup = BeautifulSoup(r, "lxml")
-    for a in soup.find_all('a', href=True): # Search through all links on the page
+    def checkProductLink1(a):
         cartFull = (len(product_id_list) == 0) # Desired item list empty
+        if cartFull:
+            print '--\nCART-UPDATE | All requested items added to cart.\n--'
+            time1.sleep(.2)
+            return 0
         link = a['href']
         category_view_url_suffix = 'shop/all/{}'.format(product_type)
         if (not cartFull) and (product_type in link) and (category_view_url_suffix != link[-1 * len(category_view_url_suffix):]):
             # if (cart not full) and (product type in link) and (link is not a product type page link)
-            print('--\nINFO | Checking Link on Product-Type Page: {}'.format(link))
+            print('--')
+            print 'CART-UPDATE | {} items left to add to cart.'.format(len(product_id_list))
+            print('INFO | Checking Link on Product-Type Page: {}'.format(link))
             checkproduct(link)
-    time1.sleep(.2)
-    return
+            print('--')
+        return 1
+    soup = BeautifulSoup(r, "lxml")
+    link_list = soup.find_all('a', href=True) # Search through all links on the page
+    pool = multiprocessing.Pool(3)
+    pool.map(checkProductLink, link_list)
+    return 1
 
 def parseAddToCartPage(r, url):
     # Parse a product page, with the option to add the item to the cart
@@ -183,9 +215,10 @@ def parseAddToCartPage(r, url):
     prod_full = " -- ".join([prod_name, prod_model])
     prod_match_list = [distance.get_jaro_distance(prod_full, product_id, winkler=True, scaling=0.1) for product_id in product_id_list]
     max_match = max(prod_match_list)
-    if max_match >= .97:
+    if (max_match >= .97):
         prod_list_index = prod_match_list.index(max(prod_match_list))
         prod_size = product_list[prod_list_index][2]
+        del product_id_list[prod_list_index] # Remove item from search list
         print('INFO | Clicking Add-to-Cart Button. Product Name: {}. Product Model: {}. Match Distance: {}'.format(prod_name, prod_model, max_match))
         add_cart_button_path = "//input[@value='add to cart']"
         browser.get(url)
@@ -212,7 +245,7 @@ def parseAddToCartPage(r, url):
             print e
     else:
         print('INFO | Skipped Product. Product Name: {}. Product Model: {}. Match Distance: {}'.format(prod_name, prod_model, max_match))
-    return
+    return 1
     
     
             
@@ -222,28 +255,25 @@ def parse(r, url, parse_type, product_type):
         parseProductTypePage(r, url, product_type)
     elif parse_type == 'add_to_cart': # Check add-to-cart page
         parseAddToCartPage(r, url)
-    return
+    return 1
 
 
 
 def checkproduct(l):
     prdurl = baseUrl + l
-    r = requests.get(prdurl).text
+    r = requests.get(prdurl, headers = fakeUserAgentHeader).text
     parse(r, prdurl, 'add_to_cart', None)
-    #buyprd(prdurl)
+    return 1
 
 
 
 i = 0
 if __name__ == '__main__':
 
-    product_type_list = ['tops-sweaters', 'jackets']
+    product_type_list = ['jackets']
     product_list = [
-                    ["Shadow Plaid Wool Overcoat", "Black", 'XLarge'],
+#                    ["Shadow Plaid Wool Overcoat", "Gold", 'Large'],
                     ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
-                    ["Ribbed Pocket Tee", "Off White", 'Large'],
-                    ["Spider Web Shirt", "Black", 'Large'],
-                    ["", "", ""]
                     ]
     product_id_list = []
     for product_name, product_model, prod_size in product_list:
@@ -265,14 +295,23 @@ if __name__ == '__main__':
     ccYearField = "2019"  # Randomly Generated Data (aka, this isn't mine)
     ccCvcField = "444"  # Randomly Generated Data (aka, this isn't mine)
 
+    browser = Chrome()
+    start_input = raw_input('SUPREME START-GATE | TYPE <ENTER> TO START PROCESS')
     st = time()
     print('PROCESS INITIATED | Supreme Auto Purchase. Start Time: {}'.format(st))
-    browser = Chrome()
     while (True):
         main(product_type_list)
-        i = i + 1
-        time1.sleep(2)
         break
-    print('Done. Total Time: {}'.format(time() - st))
+    et = time()
+    print('PROCESS COMPLETE | Done. Exit Time: {}. Total Time: {}'.format(et, et - st))
 
 
+'''
+NOTES
+
+Bot detection: http://stackoverflow.com/questions/33174804/python-requests-getting-connection-aborted-badstatusline-error
+
+
+
+
+'''
