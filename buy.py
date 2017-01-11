@@ -21,9 +21,9 @@ def main(product_type_list):
     for product_type in product_type_list:
         if product_type in r: # Add Selected Product-Type To Cart
             print('-----')
-            print('Product-Type Identified. Checking Product-Type Page: {}'.format(product_type))
+            print('PRODUCT-TYPE | Product-Type Identified. Checking Product-Type Page: {}'.format(product_type))
             parse(r, mainUrl, 'product_type', product_type)
-            print('Parse Complete: {}'.format(product_type))
+            print('PRODUCT-TYPE | Parse Complete: {}'.format(product_type))
             print('-----')
         else:
             print('-----\nProduct-Type not found: {}\n-----'.format(product_type))
@@ -158,11 +158,10 @@ def checkout(courl):
         print e
     return
 
-def checkProductLink(a):
+def checkProductLink(a, product_type):
     cartFull = (len(product_id_list) == 0) # Desired item list empty
-    if cartFull:
+    if cartFull: # backup if cartFull boolean is not identified in parseProductTypePage
         print '--\nCART-UPDATE | All requested items added to cart.\n--'
-        time1.sleep(.2)
         return 0
     link = a['href']
     category_view_url_suffix = 'shop/all/{}'.format(product_type)
@@ -177,26 +176,13 @@ def checkProductLink(a):
 
 def parseProductTypePage(r, url, product_type):
     # Parse a product type page. EG: http://www.supremenewyork.com/shop/all/skate
-    def checkProductLink1(a):
-        cartFull = (len(product_id_list) == 0) # Desired item list empty
-        if cartFull:
-            print '--\nCART-UPDATE | All requested items added to cart.\n--'
-            time1.sleep(.2)
-            return 0
-        link = a['href']
-        category_view_url_suffix = 'shop/all/{}'.format(product_type)
-        if (not cartFull) and (product_type in link) and (category_view_url_suffix != link[-1 * len(category_view_url_suffix):]):
-            # if (cart not full) and (product type in link) and (link is not a product type page link)
-            print('--')
-            print 'CART-UPDATE | {} items left to add to cart.'.format(len(product_id_list))
-            print('INFO | Checking Link on Product-Type Page: {}'.format(link))
-            checkproduct(link)
-            print('--')
-        return 1
     soup = BeautifulSoup(r, "lxml")
     link_list = soup.find_all('a', href=True) # Search through all links on the page
-    pool = multiprocessing.Pool(3)
-    pool.map(checkProductLink, link_list)
+    #pool = multiprocessing.Pool(3)
+    #success = pool.map(checkProductLink, link_list)
+    success = [checkProductLink(a, product_type) for a in link_list if (len(product_id_list) != 0)]
+    print('SLEEP | Sleep before checkout')
+    time1.sleep(.5)
     return 1
 
 def parseAddToCartPage(r, url):
@@ -270,10 +256,12 @@ def checkproduct(l):
 i = 0
 if __name__ == '__main__':
 
-    product_type_list = ['jackets']
+    product_type_list = ['pants']
     product_list = [
+                    ["Wool Trousers", "Burgundy", "34"]
+#                    ["Cable Knit Cardigan", "Light Blue", "Large"]
 #                    ["Shadow Plaid Wool Overcoat", "Gold", 'Large'],
-                    ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
+#                    ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
                     ]
     product_id_list = []
     for product_name, product_model, prod_size in product_list:
