@@ -261,6 +261,10 @@ def checkproduct(l):
 i = 0
 if __name__ == '__main__':
 
+    mainUrl = mainUrl
+    baseUrl = baseUrl
+    checkoutUrl = checkoutUrl
+    ###### START OF USER INPUT ##############################################################
     product_type_list = ['shirts']
     product_list = [
                     ["Checker Plaid Flannel Shirt", "White", "Large"]
@@ -268,13 +272,6 @@ if __name__ == '__main__':
 #                    ["Shadow Plaid Wool Overcoat", "Gold", 'Large'],
 #                    ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
                     ]
-    product_id_list = []
-    for product_name, product_model, prod_size in product_list:
-        product_id = " -- ".join([product_name, product_model])
-        product_id_list.append(product_id)
-    mainUrl = mainUrl
-    baseUrl = baseUrl
-    checkoutUrl = checkoutUrl
     fullName = "BRANDON J FLANNERY"
     emailField = "brandonjflannery@gmail.com"
     phoneField = "8055513213"
@@ -287,6 +284,12 @@ if __name__ == '__main__':
     ccMonthField = "09"  # Randomly Generated Data (aka, this isn't mine)
     ccYearField = "2019"  # Randomly Generated Data (aka, this isn't mine)
     ccCvcField = "444"  # Randomly Generated Data (aka, this isn't mine)
+    ###### END OF USER INPUT ##############################################################
+
+    product_id_list = [] # Creating product id list
+    for product_name, product_model, prod_size in product_list:
+        product_id = " -- ".join([product_name, product_model])
+        product_id_list.append(product_id)
 
     browser = Chrome()
     start_input = raw_input('SUPREME START-GATE | TYPE <ENTER> TO START PROCESS')
