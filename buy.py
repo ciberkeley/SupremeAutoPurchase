@@ -48,7 +48,7 @@ def checkout(courl):
     except:
         print('ERROR | Checkout Error. Cannot find Email field.')
     try:
-        tel_input_path = "//input[@id='order_tl']"
+        tel_input_path = "//input[@id='order_tel']"
         text_input_field = browser.find_element_by_xpath(tel_input_path)
         browser.execute_script("arguments[0].value = {}".format(phoneField), text_input_field)
         while int(text_input_field.get_attribute('value')) != int(phoneField): # Loop until field is correct
@@ -198,9 +198,14 @@ def parseAddToCartPage(r, url):
         prod_model = soup.find('p', attrs={"class": "style", "itemprop": "model"}).text
     except:
         prod_model = None
-    prod_full = " -- ".join([prod_name, prod_model])
-    prod_match_list = [distance.get_jaro_distance(prod_full, product_id, winkler=True, scaling=0.1) for product_id in product_id_list]
-    max_match = max(prod_match_list)
+    try:
+        prod_full = " -- ".join([prod_name, prod_model])
+        prod_match_list = [distance.get_jaro_distance(prod_full, product_id, winkler=True, scaling=0.1) for product_id in product_id_list]
+        max_match = max(prod_match_list)
+    except:
+        print 'ERROR | Skipping. Could not get string distance for name/model: {}/{}'.format(prod_name, prod_model)
+        return 0
+        
     if (max_match >= .97):
         prod_list_index = prod_match_list.index(max(prod_match_list))
         prod_size = product_list[prod_list_index][2]
@@ -256,9 +261,9 @@ def checkproduct(l):
 i = 0
 if __name__ == '__main__':
 
-    product_type_list = ['pants']
+    product_type_list = ['shirts']
     product_list = [
-                    ["Wool Trousers", "Burgundy", "34"]
+                    ["Checker Plaid Flannel Shirt", "White", "Large"]
 #                    ["Cable Knit Cardigan", "Light Blue", "Large"]
 #                    ["Shadow Plaid Wool Overcoat", "Gold", 'Large'],
 #                    ["Supreme/Schott Shearling Bomber", "Black", 'Medium'],
