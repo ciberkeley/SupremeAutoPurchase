@@ -4,3 +4,4 @@ selenium==2.47.3
 splinter==0.7.3
 pyjarowinkler==1.8
 multiprocessing==2.6.2.1
+pyopenssl
