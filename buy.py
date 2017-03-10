@@ -1,7 +1,7 @@
 import time as time1
 import sys, webbrowser, re
 import requests
-from selenium.webdriver import Chrome
+from selenium.webdriver import Chrome 
 from bs4 import BeautifulSoup
 from pyjarowinkler import distance
 import datetime
@@ -17,7 +17,7 @@ unicode_num_dict = {'0': u'\ue01a', '1': u'\ue01b', '2': u'\ue01c', '3': u'\ue01
 
 
 def main(product_type_list):
-    r = requests.get(mainUrl, headers = fakeUserAgentHeader).text
+    r = requests.get(mainUrl, headers = fakeUserAgentHeader, verify = False).text
     for product_type in product_type_list:
         if product_type in r: # Add Selected Product-Type To Cart
             print('-----')
@@ -252,7 +252,7 @@ def parse(r, url, parse_type, product_type):
 
 def checkproduct(l):
     prdurl = baseUrl + l
-    r = requests.get(prdurl, headers = fakeUserAgentHeader).text
+    r = requests.get(prdurl, headers = fakeUserAgentHeader, verify = False).text
     parse(r, prdurl, 'add_to_cart', None)
     return 1
 

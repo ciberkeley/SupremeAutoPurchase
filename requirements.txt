@@ -1,7 +1,6 @@
 beautifulsoup4==4.4.1
-requests==2.7.0
+requests==2.5.3
 selenium==2.47.3
 splinter==0.7.3
-chromedriver==2.24.1
 pyjarowinkler==1.8
 multiprocessing==2.6.2.1
